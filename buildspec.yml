@@ -6,7 +6,7 @@ phases:
       java: corretto8
   build:
     commands:
-      - java -jar build-scripts/build.jar
+      - java -jar build-scripts/Build.jar --all --output out/jars
 artifacts:
   files:
     - '**/*'
