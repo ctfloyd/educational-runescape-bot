@@ -6,7 +6,7 @@ files:
     destination: /home/ubuntu/OSBot/Scripts
 hooks:
   BeforeInstall:
-    - locaiton: build-scripts/get-dependencies.sh
+    - location: build-scripts/get-dependencies.sh
       timeout: 60
       runas: ubuntu
   ApplicationStop:
