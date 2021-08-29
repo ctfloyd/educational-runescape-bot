@@ -2,7 +2,7 @@ version: 0.0
 os: linux
 
 files:
-  - source: /out/jars/*
+  - source: out/jars/*
     destination: /home/ubuntu/OSBot/Scripts
 hooks:
   BeforeInstall:
