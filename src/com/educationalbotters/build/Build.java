@@ -55,7 +55,6 @@ public class Build {
     }
 
     public static void main(String[] args) {
-        args = new String[]{"--all", "--script", "ChickenSlaughterer", "--output", "./out/jars"};
         List<String> filesToBuild = new ArrayList<>();
         String outputPath = null;
         boolean isBuildingAll = false;
