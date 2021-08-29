@@ -1,0 +1,19 @@
+version: 0.0
+os: linux
+
+files:
+  - source: /
+    destination: /home/ubuntu/bot-scripts
+hooks:
+  BeforeInstall:
+    - locaiton: build-scripts/get-dependencies.sh
+      timeout: 60
+      runas: ubuntu
+  ApplicationStop:
+    - location: build-scripts/stop-app.sh
+      timeout: 60
+      runas: ubuntu
+  ApplicationStart:
+    - location: build-scripts/start-app.sh
+      timeout: 60
+      runas: ubuntu

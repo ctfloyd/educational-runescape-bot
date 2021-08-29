@@ -1,0 +1,13 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto8
+  build:
+    commands:
+      - java -jar build-scripts/build.jar
+artifacts:
+  files:
+    - '**/*'
+  discard-paths: no
