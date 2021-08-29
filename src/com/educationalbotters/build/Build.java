@@ -46,6 +46,10 @@ public class Build {
             javaInputFilesString.append(" ");
         }
         System.out.println("Input files: " + javaInputFilesString);
+        File outputDir = new File(compiledJavaOutput);
+        if(!outputDir.exists()) {
+            outputDir.mkdirs();
+        }
 
         Runtime.getRuntime().exec(String.format("javac -d %s %s", compiledJavaOutput, javaInputFilesString)).waitFor();
         Runtime.getRuntime().exec(String.format("jar cvf %s.jar %s/*", script, compiledJavaOutput)).waitFor();
@@ -96,13 +100,20 @@ public class Build {
             filesToBuild = gatherAllScriptNames();
         }
 
+        boolean hasError = false;
         for (String file : filesToBuild) {
             try {
                 build(file, outputPath);
             } catch (Exception e) {
                 System.out.println("Failed to build: " + file);
                 System.out.println(e);
+                hasError = true;
             }
+        }
+
+        // Let application caller know there were errors.
+        if(hasError) {
+            System.exit(-1);
         }
     }
 }
