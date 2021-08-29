@@ -2,8 +2,8 @@ version: 0.0
 os: linux
 
 files:
-  - source: /
-    destination: /home/ubuntu/bot-scripts
+  - source: /out/jars/*
+    destination: /home/ubuntu/OSBot/Scripts
 hooks:
   BeforeInstall:
     - locaiton: build-scripts/get-dependencies.sh
