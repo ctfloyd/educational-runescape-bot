@@ -1,2 +1,4 @@
 .idea
 out
+build-scripts/make.bat
+build-scripts/make-build-system.bat

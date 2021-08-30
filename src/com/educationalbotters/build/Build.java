@@ -1,7 +1,6 @@
 package com.educationalbotters.build;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -11,10 +10,10 @@ import java.util.stream.Collectors;
 
 public class Build {
 
-    public static String SCRIPT_SOURCE = "./src/com/educationalbotters/customscripts";
-    public static String SCRIPT_OUTPUT_SOURCE = "./out/production/educational-runescape-bot/com/educationalbotters/customscripts";
-    public static String SRC_ROOT = "./src/com/educationalbotters";
-    public static String OUTPUT_SRC_ROOT = "./out/production/educational-runescape-bot";
+    public static String SCRIPT_SOURCE = ".\\src\\com\\educationalbotters\\customscripts";
+    public static String SCRIPT_OUTPUT_SOURCE = ".\\out\\production\\educational-runescape-bot\\com\\educationalbotters\\customscripts";
+    public static String SRC_ROOT = ".\\src\\com\\educationalbotters";
+    public static String OUTPUT_SRC_ROOT = ".\\out\\production\\educational-runescape-bot";
 
     public static List<String> gatherAllScriptNames() {
         return Arrays.asList(new File(SCRIPT_SOURCE).list());
@@ -45,13 +44,21 @@ public class Build {
         return javaFiles;
     }
 
-    private static String buildCompileString(Set<String> javaFiles) {
+    private static String makeCompileString(Set<String> javaFiles) {
         StringBuilder javaInputFilesString = new StringBuilder();
         for(String input : javaFiles) {
             javaInputFilesString.append(input);
             javaInputFilesString.append(" ");
         }
         return javaInputFilesString.toString();
+    }
+
+    private static String modifySourceStringToCompileString(String inputFiles) {
+        return inputFiles
+                .replaceAll(".java", ".class")
+                .replaceAll("\\./src/", "")
+                .replaceAll("\\.\\\\src\\\\", "")
+                .replaceAll("\\.\\\\out\\\\production\\\\educational-runescape-bot\\\\", "");
     }
 
 
@@ -61,21 +68,41 @@ public class Build {
        if(!output.exists()) {
            output.mkdirs();
        }
-       String compileString = buildCompileString(javaInputFiles);
-       Runtime.getRuntime().exec(String.format("javac -d %s %s", OUTPUT_SRC_ROOT, compileString)).waitFor();
+
+        ArrayList<String> compile = new ArrayList<>();
+        compile.add("javac");
+        compile.add("-cp");
+        StringBuilder classPath = new StringBuilder();
+        compile.add(classPath.toString());
+        compile.add("-d");
+        compile.add(OUTPUT_SRC_ROOT);
+        for(String value : javaInputFiles) {
+            compile.add(value);
+        }
+        ProcessBuilder compileProcessBuilder = new ProcessBuilder(compile);
+        compileProcessBuilder.redirectErrorStream(true);
+        Process compileProcess = compileProcessBuilder.start();
+        InputStream is = compileProcess.getInputStream();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+
+        System.out.println("===========" + Paths.get(directory).getFileName().toString() + " COMPILE OUTPUT" + "===============");
+        System.out.println(compileProcessBuilder.command());
+        String line = null;
+        while ((line = reader.readLine()) != null) {
+            System.out.println(line);
+        }
+        compileProcess.waitFor();
+        System.out.println("==========================");
 
        return javaInputFiles;
     }
 
     public static void buildScript(String script, String userOutput, Set<String> includes) throws IOException, InterruptedException {
-        System.out.println("Script is: " + script);
         Set<String> javaInputFiles = getAllJavaFiles(SCRIPT_SOURCE + File.separator + script);
 
         if(javaInputFiles.isEmpty()) {
             return;
         }
-
-        String javaInputFilesString = buildCompileString(javaInputFiles);
 
         File outputDir = new File(userOutput);
         if(!outputDir.exists()) {
@@ -87,22 +114,78 @@ public class Build {
             scriptOutputDir.mkdirs();
         }
 
+        ArrayList<String> compile = new ArrayList<>();
+        compile.add("javac");
+        compile.add("-cp");
+        StringBuilder classPath = new StringBuilder();
+        classPath.append("dependencies\\OSBotApi.jar");
+        for(String include : includes) {
+            if(include == null) {
+                continue;
+            }
 
-        System.out.println("Output: " + OUTPUT_SRC_ROOT + " input files: " + javaInputFilesString);
-        Runtime.getRuntime().exec(String.format("javac -cp dependencies/OSBotApi.jar -d %s %s", OUTPUT_SRC_ROOT, javaInputFilesString)).waitFor();
+            Path currentPath = Paths.get(include);
+            while(currentPath != null && !currentPath.getFileName().toString().equals("com")) {
+                currentPath = currentPath.getParent();
+            }
 
-        String compiledJavaInputString = (javaInputFilesString + buildCompileString(includes))
-                .replaceAll(".java", ".class")
-                .replaceAll("\\./src/", "")
-                // .\src\ -> ""
-                .replaceAll("\\.\\\\src\\\\", "");
+            if(currentPath == null) {
+                System.out.println("Could not find 'com' directory for path: " + include);
+                continue;
+            }
 
-        System.out.println("Build string is: " + compiledJavaInputString);
-        Runtime.getRuntime().exec(
-                String.format("jar cvf %s.jar %s", script, compiledJavaInputString),
-                null,
-                new File(OUTPUT_SRC_ROOT)
-        ).waitFor();
+            classPath.append(";");
+            classPath.append(currentPath.getParent().toAbsolutePath());
+        }
+        compile.add(classPath.toString());
+        compile.add("-d");
+        compile.add(OUTPUT_SRC_ROOT);
+        for(String value : javaInputFiles) {
+           compile.add(value);
+        }
+        ProcessBuilder compileProcessBuilder = new ProcessBuilder(compile);
+        compileProcessBuilder.redirectErrorStream(true);
+        Process compileProcess = compileProcessBuilder.start();
+        InputStream is = compileProcess.getInputStream();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+
+        System.out.println("===========" + script + " COMPILE OUTPUT" + "===============");
+        System.out.println(compileProcessBuilder.command());
+        String line = null;
+        while ((line = reader.readLine()) != null) {
+            System.out.println(line);
+        }
+        compileProcess.waitFor();
+        System.out.println("==========================");
+
+
+        Set<String> allFilesWithIncludes = new HashSet<>();
+        allFilesWithIncludes.addAll(javaInputFiles);
+        allFilesWithIncludes.addAll(includes);
+        allFilesWithIncludes = allFilesWithIncludes.stream().map(Build::modifySourceStringToCompileString).collect(Collectors.toSet());
+
+        ArrayList<String> build = new ArrayList<>();
+        build.add("jar");
+        build.add("cvf");
+        build.add(script + ".jar");
+        for(String value : allFilesWithIncludes) {
+            build.add(value);
+        }
+        ProcessBuilder buildProcessBuilder = new ProcessBuilder(build);
+        buildProcessBuilder.directory(new File(OUTPUT_SRC_ROOT));
+        compileProcessBuilder.redirectErrorStream(true);
+        Process buildProcess = buildProcessBuilder.start();
+        is = buildProcess.getInputStream();
+        reader = new BufferedReader(new InputStreamReader(is));
+
+        System.out.println("===========" + script + " PACKAGE OUTPUT" + "===============");
+        System.out.println("Command: " + buildProcessBuilder.command());
+        line = null;
+        while ((line = reader.readLine()) != null) {
+            System.out.println(line);
+        }
+        System.out.println("==========================");
+        buildProcess.waitFor();
 
         Path jarFile = Paths.get(OUTPUT_SRC_ROOT + File.separator + script + ".jar");
         Path outputPath = Paths.get(userOutput + File.separator + script + ".jar");
@@ -168,7 +251,12 @@ public class Build {
 
         Set<String> includedJavaFiles = new HashSet<>();
         for(String include : filesToIncludeInPackage) {
-            includedJavaFiles.addAll(compileDirectory(SRC_ROOT + File.separator + include));
+            includedJavaFiles.addAll(
+                    compileDirectory(SRC_ROOT + File.separator + include)
+                            .stream().map(Build::modifySourceStringToCompileString)
+                            .map(s -> OUTPUT_SRC_ROOT + File.separator + s)
+                            .collect(Collectors.toSet())
+            );
         }
 
         boolean hasError = false;
@@ -176,8 +264,10 @@ public class Build {
             try {
                 buildScript(file, outputPath, includedJavaFiles);
             } catch (Exception e) {
+                System.out.println("==========ERROR=========");
                 System.out.println("Failed to build: " + file);
                 System.out.println(e);
+                System.out.println("=======================");
                 hasError = true;
             }
         }
