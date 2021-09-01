@@ -1,4 +1,4 @@
-package com.educationalbotters.EducationalBottersApi.Items;
+package com.educationalbotters.educationalbottersapi.items;
 
 public enum Logs {
     LOGS("Logs", 1511),

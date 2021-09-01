@@ -1,6 +1,6 @@
-package com.educationalbotters.EducationalBottersApi.Entities;
+package com.educationalbotters.educationalbottersapi.entities;
 
-import com.educationalbotters.EducationalBottersApi.Items.Logs;
+import com.educationalbotters.educationalbottersapi.items.Logs;
 
 import java.util.Arrays;
 import java.util.List;

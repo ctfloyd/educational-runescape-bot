@@ -1,7 +1,7 @@
 package com.educationalbotters.customscripts.WoodCutter.script;
 
-import com.educationalbotters.EducationalBottersApi.Items.Axe;
-import com.educationalbotters.EducationalBottersApi.Entities.Tree;
+import com.educationalbotters.educationalbottersapi.items.Axe;
+import com.educationalbotters.educationalbottersapi.entities.Tree;
 import org.osbot.rs07.api.map.Area;
 
 public class WoodcuttingConfiguration {

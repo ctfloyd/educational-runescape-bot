@@ -1,8 +1,8 @@
 package com.educationalbotters.customscripts.WoodCutter.script;
 
-import com.educationalbotters.EducationalBottersApi.Constants;
-import com.educationalbotters.EducationalBottersApi.Interactions;
-import com.educationalbotters.EducationalBottersApi.Sleep;
+import com.educationalbotters.educationalbottersapi.Constants;
+import com.educationalbotters.educationalbottersapi.Interactions;
+import com.educationalbotters.educationalbottersapi.Sleep;
 import org.osbot.rs07.api.Bank;
 import org.osbot.rs07.api.map.Area;
 import org.osbot.rs07.api.model.RS2Object;
@@ -18,7 +18,6 @@ public final class Woodcutter extends Script {
     private WoodcutterGui gui;
     private WoodcuttingConfiguration woodcuttingConfiguration;
 
-
     // TODO: GUI scripts would be good candidate to extract to the API
     @Override
     public void onStart() {
@@ -29,7 +28,6 @@ public final class Woodcutter extends Script {
             });
         } catch (InterruptedException | InvocationTargetException e) {
             log("An unexpected error occurred while creating the GUI");
-            e.printStackTrace();
             stop();
             return;
         }
@@ -81,7 +79,7 @@ public final class Woodcutter extends Script {
 
        if(tree != null) {
            tree.interact(Interactions.CHOP_DOWN.getName());
-           Sleep.untilEntityDoesNotExitOrSecondsElapsed(tree, 5);
+           Sleep.untilEntityDoesNotExistOrSecondsElapsed(tree, 5);
        }
     }
 

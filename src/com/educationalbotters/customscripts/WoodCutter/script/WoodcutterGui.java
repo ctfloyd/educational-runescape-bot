@@ -1,7 +1,7 @@
 package com.educationalbotters.customscripts.WoodCutter.script;
 
-import com.educationalbotters.EducationalBottersApi.Entities.Tree;
-import com.educationalbotters.EducationalBottersApi.Items.Axe;
+import com.educationalbotters.educationalbottersapi.entities.Tree;
+import com.educationalbotters.educationalbottersapi.items.Axe;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;

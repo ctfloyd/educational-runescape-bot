@@ -19,38 +19,33 @@ public class Build {
         return Arrays.asList(new File(SCRIPT_SOURCE).list());
     }
 
-    public static Set<String> getAllJavaFiles(String basePath) {
+    public static Set<String> getAllFilesInDirectoryEndingWith(String basePath, String endingWith) {
         File currentDirectory = new File(basePath);
         if (currentDirectory == null) {
             return Collections.emptySet();
         }
-        Set<String> javaFiles = new HashSet<>();
-        String[] javaFilesInThisFolder = currentDirectory.list((dir, name) -> {
+
+        Set<String> suffixFiles = new HashSet<>();
+        String[] suffixFilesInThisDirectory = currentDirectory.list((dir, name) -> {
             String nextPath = dir.getPath() + File.separator + name;
+
             if (new File(nextPath).isDirectory()) {
-                javaFiles.addAll(getAllJavaFiles(nextPath));
+                suffixFiles.addAll(getAllFilesInDirectoryEndingWith(nextPath, endingWith));
                 return false;
             }
-            return name.endsWith(".java");
+
+            return name.endsWith(endingWith);
         });
 
-        if(javaFilesInThisFolder != null) {
-            Set<String> paths = Arrays.stream(javaFilesInThisFolder)
+        if(suffixFilesInThisDirectory != null) {
+            Set<String> paths = Arrays.stream(suffixFilesInThisDirectory)
                     .map(file -> basePath + File.separator + file)
                     .collect(Collectors.toSet());
 
-            javaFiles.addAll(paths);
+            suffixFiles.addAll(paths);
         }
-        return javaFiles;
-    }
 
-    private static String makeCompileString(Set<String> javaFiles) {
-        StringBuilder javaInputFilesString = new StringBuilder();
-        for(String input : javaFiles) {
-            javaInputFilesString.append(input);
-            javaInputFilesString.append(" ");
-        }
-        return javaInputFilesString.toString();
+        return suffixFiles;
     }
 
     private static String modifySourceStringToCompileString(String inputFiles) {
@@ -63,7 +58,7 @@ public class Build {
 
 
     public static Set<String> compileDirectory(String directory) throws IOException, InterruptedException {
-       Set<String> javaInputFiles = getAllJavaFiles(directory);
+       Set<String> javaInputFiles = getAllFilesInDirectoryEndingWith(directory, ".java");
        File output = new File(OUTPUT_SRC_ROOT);
        if(!output.exists()) {
            output.mkdirs();
@@ -72,8 +67,7 @@ public class Build {
         ArrayList<String> compile = new ArrayList<>();
         compile.add("javac");
         compile.add("-cp");
-        StringBuilder classPath = new StringBuilder();
-        compile.add(classPath.toString());
+        compile.add("dependencies\\OSBotApi.jar");
         compile.add("-d");
         compile.add(OUTPUT_SRC_ROOT);
         for(String value : javaInputFiles) {
@@ -94,11 +88,12 @@ public class Build {
         compileProcess.waitFor();
         System.out.println("==========================");
 
-       return javaInputFiles;
+        // Scan directory for all files after compiling, since compiling can create additional files
+        return getAllFilesInDirectoryEndingWith(directory.replace(".\\src", OUTPUT_SRC_ROOT), ".class");
     }
 
     public static void buildScript(String script, String userOutput, Set<String> includes) throws IOException, InterruptedException {
-        Set<String> javaInputFiles = getAllJavaFiles(SCRIPT_SOURCE + File.separator + script);
+        Set<String> javaInputFiles = getAllFilesInDirectoryEndingWith(SCRIPT_SOURCE + File.separator + script, ".java");
 
         if(javaInputFiles.isEmpty()) {
             return;
@@ -119,6 +114,7 @@ public class Build {
         compile.add("-cp");
         StringBuilder classPath = new StringBuilder();
         classPath.append("dependencies\\OSBotApi.jar");
+        Set<String> includedPaths = new HashSet<>();
         for(String include : includes) {
             if(include == null) {
                 continue;
@@ -134,8 +130,12 @@ public class Build {
                 continue;
             }
 
-            classPath.append(";");
-            classPath.append(currentPath.getParent().toAbsolutePath());
+            if(!includedPaths.contains(currentPath.getParent().toAbsolutePath().toString())) {
+                String cPath = currentPath.getParent().toAbsolutePath().toString();
+                classPath.append(";");
+                classPath.append(cPath);
+                includedPaths.add(cPath);
+            }
         }
         compile.add(classPath.toString());
         compile.add("-d");
@@ -249,20 +249,21 @@ public class Build {
             filesToBuild = gatherAllScriptNames();
         }
 
-        Set<String> includedJavaFiles = new HashSet<>();
+        Set<String> includedClassFiles = new HashSet<>();
         for(String include : filesToIncludeInPackage) {
-            includedJavaFiles.addAll(
+            includedClassFiles.addAll(
                     compileDirectory(SRC_ROOT + File.separator + include)
                             .stream().map(Build::modifySourceStringToCompileString)
                             .map(s -> OUTPUT_SRC_ROOT + File.separator + s)
                             .collect(Collectors.toSet())
             );
         }
+        System.out.println("Included class files: " + includedClassFiles);
 
         boolean hasError = false;
         for (String file : filesToBuild) {
             try {
-                buildScript(file, outputPath, includedJavaFiles);
+                buildScript(file, outputPath, includedClassFiles);
             } catch (Exception e) {
                 System.out.println("==========ERROR=========");
                 System.out.println("Failed to build: " + file);

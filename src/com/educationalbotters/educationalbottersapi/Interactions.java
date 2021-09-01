@@ -1,4 +1,4 @@
-package com.educationalbotters.EducationalBottersApi;
+package com.educationalbotters.educationalbottersapi;
 
 public enum Interactions {
     CHOP_DOWN("chop down");

@@ -16,4 +16,11 @@ public class WoodcuttingConstants {
             new Position(3120, 3224, 0)
     });
 
+    public static final Area VARROCK_OAK_TREES = new Area(new Position[] {
+            new Position(3170, 3423, 0),
+            new Position(3170, 3407, 0),
+            new Position(3159, 3406, 0),
+            new Position(3159, 3421, 0)
+    });
+
 }

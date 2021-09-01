@@ -1,4 +1,4 @@
-package com.educationalbotters.EducationalBottersApi.Items;
+package com.educationalbotters.educationalbottersapi.items;
 
 public enum Axe {
     BRONZE_AXE("Bronze axe", 1351),

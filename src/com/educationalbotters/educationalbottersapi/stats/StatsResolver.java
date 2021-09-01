@@ -1,6 +1,6 @@
-package com.educationalbotters.EducationalBottersApi.Stats;
+package com.educationalbotters.educationalbottersapi.stats;
 
-import com.educationalbotters.EducationalBottersApi.Items.Axe;
+import com.educationalbotters.educationalbottersapi.items.Axe;
 
 // TODO: For now this will be one giga-large class but there should be a way to break these up into something nicer.
 public class StatsResolver {
