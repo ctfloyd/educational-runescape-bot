@@ -4,3 +4,4 @@ build-scripts/make.bat
 build-scripts/make-build-system.bat
 build-scripts/make.bat
 node_modules
+.env

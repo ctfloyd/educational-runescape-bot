@@ -1,10 +1,12 @@
 import express from 'express';
+import dotenv from 'dotenv';
 import { SecretsService } from './interfaces/interfaces';
 import { ScriptResource } from './resource/ScriptResource';
 import { LocalSecretsService } from './service/LocalSecretsService';
 import { RemoteSecretsResource } from './service/RemoteSecretsService';
 import { ScriptManagerService } from './service/ScriptManagerService';
 
+dotenv.config();
 const app = express();
 
 let secretsService: SecretsService;
