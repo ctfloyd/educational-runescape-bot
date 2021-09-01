@@ -160,7 +160,7 @@ public class Build {
 
 
         Set<String> allFilesWithIncludes = new HashSet<>();
-        allFilesWithIncludes.addAll(javaInputFiles);
+        allFilesWithIncludes.addAll(getAllFilesInDirectoryEndingWith(SCRIPT_OUTPUT_SOURCE + File.separator + script, ".class"));
         allFilesWithIncludes.addAll(includes);
         allFilesWithIncludes = allFilesWithIncludes.stream().map(Build::modifySourceStringToCompileString).collect(Collectors.toSet());
 
